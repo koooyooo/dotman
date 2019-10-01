@@ -19,8 +19,9 @@ func main() {
 }
 
 func run(url string, fast bool) {
+	reqNum := 100
 	st := time.Now()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < reqNum; i++ {
 		switch fast {
 		case true:
 			fastHttp(url)
@@ -30,7 +31,11 @@ func run(url string, fast bool) {
 	}
 	ed := time.Now()
 	fmt.Println()
-	fmt.Println(ed.Sub(st).Seconds())
+	fmt.Println("Sec:", ed.Sub(st).Seconds())
+	sec := ed.Sub(st).Seconds()
+	psec := float64(reqNum) / sec
+	fmt.Println("Req/Sec:", psec)
+
 }
 
 func fastHttp(url string) {
@@ -67,5 +72,6 @@ func normalHttp(url string) {
 }
 
 func operation(body []byte) {
-	fmt.Print(len(body), ",")
+	fmt.Print(".")
+	//fmt.Print(len(body), ",")
 }
