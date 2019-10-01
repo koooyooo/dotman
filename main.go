@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,7 +12,8 @@ import (
 )
 
 func main() {
-	url := ""
+	flag.Parse()
+	url := flag.Arg(0)
 	run(url, false)
 	run(url, true)
 }
@@ -28,7 +30,7 @@ func run(url string, fast bool) {
 	}
 	ed := time.Now()
 	fmt.Println()
-	fmt.Println(ed.Sub(st))
+	fmt.Println(ed.Sub(st).Seconds())
 }
 
 func fastHttp(url string) {
