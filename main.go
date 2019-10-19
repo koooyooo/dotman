@@ -13,21 +13,23 @@ import (
 )
 
 func main() {
-
-	reqPerSec := flag.Int("r", 100, "request per sec")
-	sec := flag.Int("s", 1, "sec")
-	concReq := flag.Int("c", 1, "concurrent requests")
+	reqPerSec := flag.Int("r", 100, "num request per sec")
+	sec := flag.Int("s", 1, "num sec")
+	numWorkers := flag.Int("c", 1, "num numWorkers")
 	method := flag.String("m", "GET", "method")
 	flag.Parse()
 	url := flag.Arg(0)
-	run(*method, url, *reqPerSec, *sec, *concReq, fastHttp)
-	run(*method, url, *reqPerSec, *sec, *concReq, netHttp)
+
+	fmt.Println("ReqPerSec", *reqPerSec, "sec", *sec, "numWorkers", *numWorkers, "method", *method, "url", url)
+
+	run(*method, url, *reqPerSec, *sec, *numWorkers, fastHttp)
+	run(*method, url, *reqPerSec, *sec, *numWorkers, netHttp)
 }
 
-func run(method, url string, reqPerSec, sec, concReq int, f func(string, string)) {
+func run(method, url string, reqPerSec, sec, numWorkers int, f func(string, string)) {
 	doneStream := make(chan struct{})
 	workStream := make(chan struct{})
-	for c := 0; c < concReq; c++ {
+	for c := 0; c < numWorkers; c++ {
 		go func(name string, d, w chan struct{}) {
 			for {
 				select {
@@ -47,7 +49,7 @@ func run(method, url string, reqPerSec, sec, concReq int, f func(string, string)
 			time.Sleep(time.Duration(1000/reqPerSec) * time.Millisecond)
 		}
 	}
-	for c := 0; c < concReq; c++ {
+	for c := 0; c < numWorkers; c++ {
 		doneStream <- struct{}{}
 	}
 	ed := time.Now()
