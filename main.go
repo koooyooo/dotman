@@ -12,41 +12,37 @@ import (
 )
 
 func main() {
+	numReq := flag.Int("n", 100, "numRequest")
+	concReq := flag.Int("c", 1, "concurrent requests")
+	method := flag.String("m", "GET", "method")
 	flag.Parse()
 	url := flag.Arg(0)
-	run(url, false)
-	run(url, true)
+	run(*method, url, *numReq, *concReq, fastHttp)
+	run(*method, url, *numReq, *concReq, netHttp)
 }
 
-func run(url string, fast bool) {
-	reqNum := 100
+func run(method, url string, numReq, concReq int, f func(string, string)) {
+	//workStream := make(chan struct{})
+
 	st := time.Now()
-	for i := 0; i < reqNum; i++ {
-		switch fast {
-		case true:
-			fastHttp(url)
-		case false:
-			normalHttp(url)
-		}
+	for i := 0; i < numReq; i++ {
+		f(method, url)
 	}
 	ed := time.Now()
 	fmt.Println()
 	fmt.Println("Sec:", ed.Sub(st).Seconds())
 	sec := ed.Sub(st).Seconds()
-	psec := float64(reqNum) / sec
-	fmt.Println("Req/Sec:", psec)
-
+	fmt.Println("Req/Sec:", float64(numReq)/sec)
 }
 
-func fastHttp(url string) {
-
+func fastHttp(method, url string) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 
 	defer fasthttp.ReleaseRequest(req)   // <- do not forget to release
 	defer fasthttp.ReleaseResponse(resp) // <- do not forget to release
 
-	req.Header.SetMethod("GET")
+	req.Header.SetMethod(method)
 	req.SetRequestURI(url)
 
 	fasthttp.Do(req, resp)
@@ -55,15 +51,15 @@ func fastHttp(url string) {
 	operation(bodyBytes)
 }
 
-func normalHttp(url string) {
-	req, err := http.NewRequest("GET", url, nil)
+func netHttp(method, url string) {
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	tr := &http.Transport{}
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
-
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
