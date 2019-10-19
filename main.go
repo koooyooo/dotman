@@ -33,12 +33,14 @@ func run(method, url string, numReq, concReq int, f func(string, string)) {
 					f(method, url)
 				case <-d:
 					return
+				default:
 				}
 			}
 		}("worker-"+strconv.Itoa(c), doneStream, workStream)
 	}
 	st := time.Now()
 	for i := 0; i < numReq; i++ {
+		// 一秒ごとに投入
 		workStream <- struct{}{}
 	}
 	for c := 0; c < concReq; c++ {
