@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -22,11 +23,26 @@ func main() {
 }
 
 func run(method, url string, numReq, concReq int, f func(string, string)) {
-	//workStream := make(chan struct{})
-
+	doneStream := make(chan struct{})
+	workStream := make(chan struct{})
+	for c := 0; c < concReq; c++ {
+		go func(name string, d, w chan struct{}) {
+			for {
+				select {
+				case <-w:
+					f(method, url)
+				case <-d:
+					return
+				}
+			}
+		}("worker-"+strconv.Itoa(c), doneStream, workStream)
+	}
 	st := time.Now()
 	for i := 0; i < numReq; i++ {
-		f(method, url)
+		workStream <- struct{}{}
+	}
+	for c := 0; c < concReq; c++ {
+		doneStream <- struct{}{}
 	}
 	ed := time.Now()
 	fmt.Println()
