@@ -13,16 +13,18 @@ import (
 )
 
 func main() {
-	numReq := flag.Int("n", 100, "numRequest")
+
+	reqPerSec := flag.Int("r", 100, "request per sec")
+	sec := flag.Int("s", 1, "sec")
 	concReq := flag.Int("c", 1, "concurrent requests")
 	method := flag.String("m", "GET", "method")
 	flag.Parse()
 	url := flag.Arg(0)
-	run(*method, url, *numReq, *concReq, fastHttp)
-	run(*method, url, *numReq, *concReq, netHttp)
+	run(*method, url, *reqPerSec, *sec, *concReq, fastHttp)
+	run(*method, url, *reqPerSec, *sec, *concReq, netHttp)
 }
 
-func run(method, url string, numReq, concReq int, f func(string, string)) {
+func run(method, url string, reqPerSec, sec, concReq int, f func(string, string)) {
 	doneStream := make(chan struct{})
 	workStream := make(chan struct{})
 	for c := 0; c < concReq; c++ {
@@ -39,9 +41,11 @@ func run(method, url string, numReq, concReq int, f func(string, string)) {
 		}("worker-"+strconv.Itoa(c), doneStream, workStream)
 	}
 	st := time.Now()
-	for i := 0; i < numReq; i++ {
-		// 一秒ごとに投入
-		workStream <- struct{}{}
+	for i := 0; i < sec; i++ {
+		for j := 0; j < reqPerSec; j++ {
+			workStream <- struct{}{}
+			time.Sleep(time.Duration(1000/reqPerSec) * time.Millisecond)
+		}
 	}
 	for c := 0; c < concReq; c++ {
 		doneStream <- struct{}{}
@@ -49,8 +53,9 @@ func run(method, url string, numReq, concReq int, f func(string, string)) {
 	ed := time.Now()
 	fmt.Println()
 	fmt.Println("Sec:", ed.Sub(st).Seconds())
-	sec := ed.Sub(st).Seconds()
-	fmt.Println("Req/Sec:", float64(numReq)/sec)
+	time := ed.Sub(st).Seconds()
+	numReq := sec * reqPerSec
+	fmt.Println("Req/Sec:", float64(numReq)/time)
 }
 
 func fastHttp(method, url string) {
