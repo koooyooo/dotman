@@ -29,41 +29,20 @@ func run(method, url string, reqPerSec, sec, numWorkers int, f ClientFunc) {
 	defer close(doneStream)
 	defer close(workStream)
 
-	// 処理件数を管理
 	var wg sync.WaitGroup
 
-	// 消費者を稼働
 	for c := 0; c < numWorkers; c++ {
-		go func(name string, d, w chan struct{}) {
-			for {
-				select {
-				case <-w:
-					f(method, url)
-					wg.Done()
-				case <-d:
-					return
-				default:
-				}
-			}
-		}("worker-"+strconv.Itoa(c), doneStream, workStream)
+		consumer := createConsumers(method, url, f, &wg)
+		go consumer("worker-"+strconv.Itoa(c), doneStream, workStream)
 	}
 	st := time.Now()
+	var prod workProducer
 	if sec == 0 {
-		// 全ワークを一気に投入
-		wg.Add(reqPerSec)
-		for j := 0; j < reqPerSec; j++ {
-			workStream <- struct{}{}
-		}
+		prod = allAtOnceProducer
 	} else {
-		wg.Add(reqPerSec * sec)
-		// 指定のタイミングで ワーク通知を投入
-		for i := 0; i < sec; i++ {
-			for j := 0; j < reqPerSec; j++ {
-				workStream <- struct{}{}
-				time.Sleep(time.Duration(1000/reqPerSec) * time.Millisecond)
-			}
-		}
+		prod = perSecDistributionProducer
 	}
+	prod(reqPerSec, sec, workStream, &wg)
 	// 処理完了を待機
 	wg.Wait()
 	ed := time.Now()
@@ -73,6 +52,21 @@ func run(method, url string, reqPerSec, sec, numWorkers int, f ClientFunc) {
 		doneStream <- struct{}{}
 	}
 	outputResult(st, ed, sec*reqPerSec)
+}
+
+func createConsumers(method string, url string, f ClientFunc, wg *sync.WaitGroup) func(name string, d <-chan struct{}, w <-chan struct{}) {
+	return func(name string, d, w <-chan struct{}) {
+		for {
+			select {
+			case <-w:
+				f(method, url)
+				wg.Done()
+			case <-d:
+				return
+			default:
+			}
+		}
+	}
 }
 
 func outputResult(st time.Time, ed time.Time, totalReq int) {
