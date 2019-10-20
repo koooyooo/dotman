@@ -19,10 +19,10 @@ func main() {
 
 	fmt.Println("ReqPerSec", *reqPerSec, "sec", *sec, "numWorkers", *numWorkers, "method", *method, "url", url)
 
-	run(*method, url, *reqPerSec, *sec, *numWorkers, FastHttp)
+	run(*method, url, *reqPerSec, *sec, *numWorkers)
 }
 
-func run(method, url string, reqPerSec, sec, numWorkers int, f ClientFunc) {
+func run(method, url string, reqPerSec, sec, numWorkers int) {
 	// 終了通知、ワーク通知のストリーム準備
 	doneStream := make(chan struct{}, numWorkers)
 	workStream := make(chan struct{}, 0)
@@ -31,9 +31,9 @@ func run(method, url string, reqPerSec, sec, numWorkers int, f ClientFunc) {
 
 	var wg sync.WaitGroup
 
+	workConsumer := createConsumer(method, url, FastHttp, &wg)
 	for c := 0; c < numWorkers; c++ {
-		consumer := createConsumers(method, url, f, &wg)
-		go consumer("worker-"+strconv.Itoa(c), doneStream, workStream)
+		go workConsumer("worker-"+strconv.Itoa(c), doneStream, workStream)
 	}
 	st := time.Now()
 	var prod workProducer
@@ -52,21 +52,6 @@ func run(method, url string, reqPerSec, sec, numWorkers int, f ClientFunc) {
 		doneStream <- struct{}{}
 	}
 	outputResult(st, ed, sec*reqPerSec)
-}
-
-func createConsumers(method string, url string, f ClientFunc, wg *sync.WaitGroup) func(name string, d <-chan struct{}, w <-chan struct{}) {
-	return func(name string, d, w <-chan struct{}) {
-		for {
-			select {
-			case <-w:
-				f(method, url)
-				wg.Done()
-			case <-d:
-				return
-			default:
-			}
-		}
-	}
 }
 
 func outputResult(st time.Time, ed time.Time, totalReq int) {

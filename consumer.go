@@ -5,11 +5,32 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/valyala/fasthttp"
 )
 
+// workConsumer (name, done channel, work channel) consumes works
+type workConsumer func(string, <-chan struct{}, <-chan struct{})
+
+// createConsumer create workConsumer
+func createConsumer(method string, url string, f ClientFunc, wg *sync.WaitGroup) workConsumer {
+	return func(name string, d, w <-chan struct{}) {
+		for {
+			select {
+			case <-w:
+				f(method, url)
+				wg.Done()
+			case <-d:
+				return
+			default:
+			}
+		}
+	}
+}
+
+//
 type ClientFunc = func(method, url string)
 
 func FastHttp(method, url string) {
