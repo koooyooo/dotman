@@ -31,18 +31,22 @@ func run(method, url string, reqPerSec, sec, numWorkers int) {
 
 	var wg sync.WaitGroup
 
+	// ワーカーを起動
 	workConsumer := createConsumer(method, url, FastHttp, &wg)
 	for c := 0; c < numWorkers; c++ {
-		go workConsumer("worker-"+strconv.Itoa(c), doneStream, workStream)
+		name := "worker-" + strconv.Itoa(c)
+		go workConsumer(name, doneStream, workStream)
 	}
+
 	st := time.Now()
-	var prod workProducer
+
+	// ワークを追加
+	var workProd workProducer = perSecDistributionProducer
 	if sec == 0 {
-		prod = allAtOnceProducer
-	} else {
-		prod = perSecDistributionProducer
+		workProd = allAtOnceProducer
 	}
-	prod(reqPerSec, sec, workStream, &wg)
+	workProd(reqPerSec, sec, workStream, &wg)
+
 	// 処理完了を待機
 	wg.Wait()
 	ed := time.Now()
