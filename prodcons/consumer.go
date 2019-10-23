@@ -1,4 +1,4 @@
-package main
+package prodcons
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 type workConsumer func(string, <-chan struct{}, <-chan struct{})
 
 // createConsumer create workConsumer
-func createConsumer(method string, url string, f ClientFunc, wg *sync.WaitGroup) workConsumer {
+func CreateConsumer(method string, url string, f ClientFunc, wg *sync.WaitGroup) workConsumer {
 	return func(name string, d, w <-chan struct{}) {
 		for {
 			select {

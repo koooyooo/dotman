@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/koooyooo/fasthttp/prodcons"
 	"strconv"
 	"sync"
 	"time"
@@ -17,8 +18,13 @@ func main() {
 	flag.Parse()
 	url := flag.Arg(0)
 
-	fmt.Println("ReqPerSec", *reqPerSec, "sec", *sec, "numWorkers", *numWorkers, "method", *method, "url", url)
-
+	if *sec == 0 {
+		fmt.Println("Mode: All at once")
+		fmt.Println("total-requests", *reqPerSec, "sec", *sec, "num-workers", *numWorkers, "method", *method, "url", url)
+	} else {
+		fmt.Println("Mode: Request per sec")
+		fmt.Println("requests-per-sec", *reqPerSec, "sec", *sec, "num-workers", *numWorkers, "method", *method, "url", url)
+	}
 	run(*method, url, *reqPerSec, *sec, *numWorkers)
 }
 
@@ -32,7 +38,7 @@ func run(method, url string, reqPerSec, sec, numWorkers int) {
 	var wg sync.WaitGroup
 
 	// ワーカーを起動
-	workConsumer := createConsumer(method, url, FastHttp, &wg)
+	workConsumer := prodcons.CreateConsumer(method, url, prodcons.FastHttp, &wg)
 	for c := 0; c < numWorkers; c++ {
 		name := "worker-" + strconv.Itoa(c)
 		go workConsumer(name, doneStream, workStream)
@@ -41,9 +47,9 @@ func run(method, url string, reqPerSec, sec, numWorkers int) {
 	st := time.Now()
 
 	// ワークを追加
-	var workProd workProducer = perSecDistributionProducer
+	var workProd prodcons.WorkProducer = prodcons.PerSecDistributionProducer
 	if sec == 0 {
-		workProd = allAtOnceProducer
+		workProd = prodcons.AllAtOnceProducer
 	}
 	workProd(reqPerSec, sec, workStream, &wg)
 
@@ -55,12 +61,16 @@ func run(method, url string, reqPerSec, sec, numWorkers int) {
 	for c := 0; c < numWorkers; c++ {
 		doneStream <- struct{}{}
 	}
-	outputResult(st, ed, sec*reqPerSec)
+
+	var totalReq = sec * reqPerSec
+	if sec == 0 {
+		totalReq = reqPerSec
+	}
+	outputResult(st, ed, totalReq)
 }
 
 func outputResult(st time.Time, ed time.Time, totalReq int) {
 	fmt.Println()
 	fmt.Println("Sec:", ed.Sub(st).Seconds())
-	time := ed.Sub(st).Seconds()
-	fmt.Println("Req/Sec:", float64(totalReq)/time)
+	fmt.Println("Req/Sec:", float64(totalReq)/(ed.Sub(st).Seconds()))
 }
