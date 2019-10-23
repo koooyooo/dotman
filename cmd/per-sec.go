@@ -7,7 +7,6 @@ import (
 	"github.com/koooyooo/fasthttp/control"
 )
 
-// main 処理
 func main() {
 	reqPerSec := flag.Int("r", 100, "requests per sec")
 	sec := flag.Int("s", 0, "num sec")
