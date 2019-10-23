@@ -12,7 +12,7 @@ import (
 func main() {
 	reqPerSec := flag.Int("r", 100, "num request per sec")
 	sec := flag.Int("s", 0, "num sec")
-	numWorkers := flag.Int("c", 1, "num numWorkers")
+	numWorkers := flag.Int("w", 1, "num numWorkers")
 	method := flag.String("m", "GET", "method")
 	flag.Parse()
 	url := flag.Arg(0)
