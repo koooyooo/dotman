@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	reqPerSec := flag.Int("r", 100, "requests per sec")
-	sec := flag.Int("s", 0, "num sec")
+	reqPerSec := flag.Int("r", 10, "requests per sec")
+	sec := flag.Int("s", 10, "num sec")
 	numWorkers := flag.Int("w", 1, "num workers")
 	method := flag.String("m", "GET", "method")
 	flag.Parse()
