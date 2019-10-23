@@ -9,7 +9,7 @@ import (
 	"github.com/koooyooo/fasthttp/prodcon"
 )
 
-func Run(isAtOnceMode bool, headers map[string][]string, method, url string, reqPerSec, sec, numWorkers int) {
+func Run(isAtOnceMode bool, headers map[string][]string, method, url string, reqPerSec, sec, numWorkers int, debug bool) {
 	// 終了通知、ワーク通知のストリーム準備
 	doneStream := make(chan struct{}, numWorkers)
 	workStream := make(chan struct{}, 0)
@@ -19,7 +19,7 @@ func Run(isAtOnceMode bool, headers map[string][]string, method, url string, req
 	var wg sync.WaitGroup
 
 	// ワーカーを起動
-	workConsumer := prodcon.CreateConsumer(headers, method, url, prodcon.FastHttp, &wg)
+	workConsumer := prodcon.CreateConsumer(headers, method, url, prodcon.FastHttp, &wg, debug)
 	for c := 0; c < numWorkers; c++ {
 		name := "worker-" + strconv.Itoa(c)
 		go workConsumer(name, doneStream, workStream)

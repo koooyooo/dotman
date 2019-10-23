@@ -15,12 +15,12 @@ import (
 type workConsumer func(string, <-chan struct{}, <-chan struct{})
 
 // createConsumer create workConsumer
-func CreateConsumer(headers map[string][]string, method string, url string, f ClientFunc, wg *sync.WaitGroup) workConsumer {
+func CreateConsumer(headers map[string][]string, method string, url string, f ClientFunc, wg *sync.WaitGroup, debug bool) workConsumer {
 	return func(name string, d, w <-chan struct{}) {
 		for {
 			select {
 			case <-w:
-				f(headers, method, url)
+				f(headers, method, url, debug)
 				wg.Done()
 			case <-d:
 				return
@@ -31,9 +31,9 @@ func CreateConsumer(headers map[string][]string, method string, url string, f Cl
 }
 
 //
-type ClientFunc = func(headers map[string][]string, method, url string)
+type ClientFunc = func(headers map[string][]string, method, url string, debug bool)
 
-func FastHttp(headers map[string][]string, method, url string) {
+func FastHttp(headers map[string][]string, method, url string, debug bool) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 
@@ -52,10 +52,10 @@ func FastHttp(headers map[string][]string, method, url string) {
 	fasthttp.Do(req, resp)
 
 	bodyBytes := resp.Body()
-	output(bodyBytes)
+	output(bodyBytes, debug)
 }
 
-func NetHttp(headers map[string][]string, method, url string) {
+func NetHttp(headers map[string][]string, method, url string, debug bool) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -73,10 +73,13 @@ func NetHttp(headers map[string][]string, method, url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	output(body)
+	output(body, debug)
 }
 
-func output(body []byte) {
-	fmt.Print(".")
-	fmt.Print(string(body), ",")
+func output(body []byte, debug bool) {
+	out := "."
+	if debug {
+		out = string(body)
+	}
+	fmt.Print(out)
 }
