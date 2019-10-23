@@ -1,4 +1,4 @@
-package prodcons
+package prodcon
 
 import (
 	"fmt"
