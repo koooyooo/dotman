@@ -12,14 +12,15 @@ import (
 func Run(isAtOnceMode bool, headers map[string][]string, method, url string, reqPerSec, sec, numWorkers int, debug bool) {
 	// 終了通知、ワーク通知のストリーム準備
 	doneStream := make(chan struct{}, numWorkers)
-	workStream := make(chan struct{}, 0)
+	workStream := make(chan struct{}, reqPerSec*(sec+1))
 	defer close(doneStream)
 	defer close(workStream)
 
 	var wg sync.WaitGroup
+	var cond = sync.NewCond(&sync.Mutex{})
 
 	// ワーカーを起動
-	workConsumer := prodcon.CreateConsumer(headers, method, url, prodcon.FastHttp, &wg, debug)
+	workConsumer := prodcon.CreateConsumer(headers, method, url, prodcon.FastHttp, cond, &wg, debug)
 	for c := 0; c < numWorkers; c++ {
 		name := "worker-" + strconv.Itoa(c)
 		go workConsumer(name, doneStream, workStream)
@@ -32,7 +33,7 @@ func Run(isAtOnceMode bool, headers map[string][]string, method, url string, req
 	if isAtOnceMode {
 		workProd = prodcon.AtOnceProducer
 	}
-	workProd(reqPerSec, sec, workStream, &wg)
+	workProd(reqPerSec, sec, workStream, cond, &wg)
 
 	// 処理完了を待機
 	wg.Wait()

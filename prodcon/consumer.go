@@ -15,9 +15,10 @@ import (
 type workConsumer func(string, <-chan struct{}, <-chan struct{})
 
 // createConsumer create workConsumer
-func CreateConsumer(headers map[string][]string, method string, url string, f ClientFunc, wg *sync.WaitGroup, debug bool) workConsumer {
+func CreateConsumer(headers map[string][]string, method string, url string, f ClientFunc, cond *sync.Cond, wg *sync.WaitGroup, debug bool) workConsumer {
 	return func(name string, d, w <-chan struct{}) {
 		for {
+			cond.L.Lock()
 			select {
 			case <-w:
 				f(headers, method, url, debug)
@@ -25,7 +26,9 @@ func CreateConsumer(headers map[string][]string, method string, url string, f Cl
 			case <-d:
 				return
 			default:
+				cond.Wait()
 			}
+			cond.L.Unlock()
 		}
 	}
 }
