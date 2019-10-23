@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export GOARCH="amd64"
+ARCH="amd64"
 
 if [ $# -eq 0 ]; then
-  export GOOS="linux"
+  OS="linux"
 else
   # darwin / linux / windows
-  export GOOS="$1"
+  OS="$1"
 fi
 
-go build -o at-once cmd/at-once.go
-go build -o per-sec cmd/per-sec.go
+GOOS=$OS GOARCH=$ARCH go build -o at-once cmd/at-once.go
+GOOS=$OS GOARCH=$ARCH go build -o per-sec cmd/per-sec.go
