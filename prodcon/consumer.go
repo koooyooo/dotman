@@ -24,7 +24,6 @@ func CreateConsumer(headers map[string][]string, method string, url string, f Cl
 				wg.Done()
 			case <-d:
 				return
-			default:
 			}
 		}
 	}
