@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/koooyooo/fasthttp/prodcon"
+	"github.com/koooyooo/dotman/prodcon"
 )
 
 func Run(isAtOnceMode bool, headers map[string][]string, method, url string, reqPerSec, sec, numWorkers int, debug bool) {

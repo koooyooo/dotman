@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/koooyooo/fasthttp/common"
+	"github.com/koooyooo/dotman/common"
 
-	"github.com/koooyooo/fasthttp/control"
+	"github.com/koooyooo/dotman/control"
 )
 
 func main() {
