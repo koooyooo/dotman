@@ -1,4 +1,4 @@
-module github.com/koooyooo/fasthttp
+module github.com/koooyooo/dotman
 
 go 1.13
 
