@@ -67,11 +67,11 @@ func NetHttp(headers map[string][]string, method, url string, debug bool) {
 	tr := &http.Transport{}
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer resp.Body.Close()
 	output(body, debug)
 }
 
