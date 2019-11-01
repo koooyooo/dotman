@@ -47,9 +47,12 @@ func FastHttp(headers map[string][]string, method, url string, debug bool) {
 
 	req.Header.SetMethod(method)
 	req.SetRequestURI(url)
-
+	st := time.Now()
 	fasthttp.Do(req, resp)
-
+	ed := time.Now()
+	if false {
+		fmt.Printf("[%d]", ed.Sub(st).Milliseconds())
+	}
 	bodyBytes := resp.Body()
 	output(bodyBytes, debug)
 }
