@@ -8,7 +8,7 @@ import (
 
 	"github.com/koooyooo/dotman/common"
 
-	"github.com/koooyooo/dotman/control"
+	"github.com/koooyooo/dotman/runner"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 
 	fmt.Println("thread-per-msg-mode", threadPerMessageMode, "requests-per-sec", *reqPerSec, "sec", *sec, "num-workers", *numWorkers, "method", *method, "url", url)
 	if threadPerMessageMode {
-		control.RunThread(
+		runner.RunThread(
 			true,
 			model.Request{
 				Headers: common.ParseHeader(*headers),
@@ -42,7 +42,7 @@ func main() {
 				VerboseTime:     *verboseTime,
 			})
 	} else {
-		control.RunWorker(
+		runner.RunWorker(
 			false,
 			model.Request{
 				Headers: common.ParseHeader(*headers),

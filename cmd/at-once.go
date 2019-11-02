@@ -7,7 +7,7 @@ import (
 	"github.com/koooyooo/dotman/common"
 	"github.com/koooyooo/dotman/model"
 
-	"github.com/koooyooo/dotman/control"
+	"github.com/koooyooo/dotman/runner"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	url := flag.Arg(0)
 
 	fmt.Println("total-requests", *totalReqs, "sec", 0, "num-workers", *numWorkers, "method", *method, "url", url)
-	control.RunWorker(
+	runner.RunWorker(
 		true,
 		model.Request{
 			Headers: common.ParseHeader(*headers),
