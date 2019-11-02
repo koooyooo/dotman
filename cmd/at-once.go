@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/koooyooo/dotman/common"
+	"github.com/koooyooo/dotman/model"
 
 	"github.com/koooyooo/dotman/control"
 )
@@ -20,5 +21,15 @@ func main() {
 	url := flag.Arg(0)
 
 	fmt.Println("total-requests", *totalReqs, "sec", 0, "num-workers", *numWorkers, "method", *method, "url", url)
-	control.Run(true, common.ParseHeader(*headers), *method, url, *totalReqs, 0, *numWorkers, *debug)
+	control.RunWorker(
+		true,
+		model.Request{
+			Headers: common.ParseHeader(*headers),
+			Method:  *method,
+			Url:     url,
+		},
+		*totalReqs,
+		0,
+		*numWorkers,
+		*debug)
 }
