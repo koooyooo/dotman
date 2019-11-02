@@ -11,7 +11,7 @@ import (
 	"github.com/koooyooo/dotman/prodcon"
 )
 
-func RunWorker(isAtOnceMode bool, req model.Request, reqPerSec, sec, numWorkers int, debug bool) {
+func RunWorker(isAtOnceMode bool, req model.Request, reqPerSec, sec, numWorkers int, config model.Config) {
 	// 終了通知、ワーク通知のストリーム準備
 	doneStream := make(chan struct{}, numWorkers)
 	workStream := make(chan struct{}, 0)
@@ -21,7 +21,7 @@ func RunWorker(isAtOnceMode bool, req model.Request, reqPerSec, sec, numWorkers 
 	var wg sync.WaitGroup
 
 	// ワーカーを起動
-	workConsumer := prodcon.CreateConsumer(req.Headers, req.Method, req.Url, prodcon.FastHttp, &wg, debug)
+	workConsumer := prodcon.CreateConsumer(req, prodcon.FastHttp, &wg, config)
 	for c := 0; c < numWorkers; c++ {
 		name := "worker-" + strconv.Itoa(c)
 		go workConsumer(name, doneStream, workStream)

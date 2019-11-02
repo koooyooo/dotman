@@ -6,3 +6,8 @@ type Request struct {
 	Method  string
 	Url     string
 }
+
+type Config struct {
+	VerboseResponse bool
+	VerboseTime     bool
+}

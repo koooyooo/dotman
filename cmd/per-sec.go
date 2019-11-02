@@ -14,24 +14,47 @@ import (
 func main() {
 	reqPerSec := flag.Int("r", 10, "requests per sec")
 	sec := flag.Int("s", 10, "num sec")
-	numWorkers := flag.Int("w", 1, "num workers")
+	numWorkers := flag.Int("w", 1, "num workers, 0 workers mean thread per message mode")
 	method := flag.String("m", "GET", "method")
 	headers := flag.String("h", "", "headers: key1:value1,key2:value2")
-	debug := flag.Bool("d", false, "debugMode")
+	verboseResponse := flag.Bool("vr", false, "verbose output of response")
+	verboseTime := flag.Bool("vt", false, "verbose output of time")
 
 	flag.Parse()
 	url := flag.Arg(0)
 
-	fmt.Println("requests-per-sec", *reqPerSec, "sec", *sec, "num-workers", *numWorkers, "method", *method, "url", url)
-	control.RunWorker(
-		false,
-		model.Request{
-			Headers: common.ParseHeader(*headers),
-			Method:  *method,
-			Url:     url,
-		},
-		*reqPerSec,
-		*sec,
-		*numWorkers,
-		*debug)
+	threadPerMessageMode := *numWorkers <= 0
+
+	fmt.Println("thread-per-msg-mode", threadPerMessageMode, "requests-per-sec", *reqPerSec, "sec", *sec, "num-workers", *numWorkers, "method", *method, "url", url)
+	if threadPerMessageMode {
+		control.RunThread(
+			true,
+			model.Request{
+				Headers: common.ParseHeader(*headers),
+				Method:  *method,
+				Url:     url,
+			},
+			*reqPerSec,
+			*sec,
+			*numWorkers,
+			model.Config{
+				VerboseResponse: *verboseResponse,
+				VerboseTime:     *verboseTime,
+			})
+	} else {
+		control.RunWorker(
+			false,
+			model.Request{
+				Headers: common.ParseHeader(*headers),
+				Method:  *method,
+				Url:     url,
+			},
+			*reqPerSec,
+			*sec,
+			*numWorkers,
+			model.Config{
+				VerboseResponse: *verboseResponse,
+				VerboseTime:     *verboseTime,
+			})
+	}
 }
