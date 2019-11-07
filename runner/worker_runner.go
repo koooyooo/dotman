@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -50,10 +49,4 @@ func RunWorker(isAtOnceMode bool, req model.Request, reqPerSec, sec, numWorkers 
 		totalReq = reqPerSec
 	}
 	outputResult(st, ed, totalReq)
-}
-
-func outputResult(st time.Time, ed time.Time, totalReq int) {
-	fmt.Println()
-	fmt.Println("Sec:", ed.Sub(st).Seconds())
-	fmt.Println("Req/Sec:", float64(totalReq)/(ed.Sub(st).Seconds()))
 }

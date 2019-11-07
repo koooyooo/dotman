@@ -57,8 +57,7 @@ func FastHttp(r model.Request, c model.Config) {
 	if c.VerboseTime {
 		fmt.Printf("[%d]", ed.Sub(st).Milliseconds())
 	}
-	bodyBytes := resp.Body()
-	output(bodyBytes, c.VerboseResponse)
+	output(resp.StatusCode(), resp.Body(), c.VerboseResponse)
 }
 
 func NetHttp(r model.Request, c model.Config) {
@@ -83,13 +82,21 @@ func NetHttp(r model.Request, c model.Config) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	output(body, c.VerboseResponse)
+	output(resp.StatusCode, body, c.VerboseResponse)
 }
 
-func output(body []byte, debug bool) {
-	out := "."
+func output(stcode int, body []byte, debug bool) {
 	if debug {
-		out = string(body)
+		fmt.Printf("%d [%s]", stcode, string(body))
+		return
 	}
-	fmt.Print(out)
+	if 200 <= stcode && stcode <= 399 {
+		fmt.Print(".")
+	} else if 400 <= stcode && stcode <= 499 {
+		fmt.Print("!")
+	} else if 500 <= stcode && stcode <= 599 {
+		fmt.Print("x")
+	} else {
+		fmt.Print("?")
+	}
 }
