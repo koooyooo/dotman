@@ -5,6 +5,7 @@ type Request struct {
 	Params  map[string][]string
 	Method  string
 	Url     string
+	Body    []byte
 }
 
 type Config struct {

@@ -1,6 +1,7 @@
 package prodcon
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -49,6 +50,7 @@ func FastHttp(r model.Request, c model.Config) {
 
 	req.Header.SetMethod(r.Method)
 	req.SetRequestURI(r.Url)
+	req.SetBody(r.Body)
 	st := time.Now()
 	fasthttp.Do(req, resp)
 	ed := time.Now()
@@ -69,6 +71,7 @@ func NetHttp(r model.Request, c model.Config) {
 			req.Header.Add(k, v)
 		}
 	}
+	req.Body = ioutil.NopCloser(bytes.NewReader(r.Body))
 	tr := &http.Transport{}
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)

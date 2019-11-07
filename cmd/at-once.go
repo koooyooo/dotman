@@ -15,6 +15,7 @@ func main() {
 	numWorkers := flag.Int("w", 1, "num workers")
 	method := flag.String("m", "GET", "method")
 	headers := flag.String("h", "", "headers: key1:value1,key2:value2")
+	body := flag.String("b", "", "request body")
 	verboseResponse := flag.Bool("vr", false, "verbose output of response")
 	verboseTime := flag.Bool("vt", false, "verbose output of time")
 
@@ -28,6 +29,7 @@ func main() {
 			Headers: common.ParseHeader(*headers),
 			Method:  *method,
 			Url:     url,
+			Body:    []byte(*body),
 		},
 		*totalReqs,
 		0,
